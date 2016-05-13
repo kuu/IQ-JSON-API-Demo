@@ -28,16 +28,16 @@ class ViewController: UIViewController {
     func getCurrentTimeDate() -> String {
         let formatter = NSDateFormatter()
         formatter.timeZone = NSTimeZone(name: "UTC")
-        formatter.dateFormat = "yyyy-mm-dd hh:mm:ssZ"
+        formatter.dateFormat = "yyyy-MM-dd hh:mm:ssZ"
         var dateStr = formatter.stringFromDate(NSDate())
         dateStr = dateStr.stringByReplacingOccurrencesOfString(" ", withString: "T")
-        return dateStr.stringByReplacingOccurrencesOfString("+0000", withString: "Z")
+        return dateStr.stringByReplacingOccurrencesOfString("+0000", withString: ".000Z")
 
     }
     
     func updatePlaybackTime() {
         playbackTime++
-        sendPlayerEvent("playheadUpdateEvent")
+        sendPlayerEvent("playheadUpdate")
     }
     
     func startTimer() {
@@ -62,24 +62,24 @@ class ViewController: UIViewController {
         ]
         
         switch event {
-        case "displayEvent":
+        case "display":
             break;
-        case "playRequestedEvent":
+        case "playRequested":
             eventItem["isAutoPlay"] = false
             break;
-        case "videoStartedEvent":
+        case "videoStarted":
             startTimer()
             break;
-        case "playheadUpdateEvent":
+        case "playheadUpdate":
             eventItem["playheadPositionMillis"] = playbackTime * 1000
             break;
-        case "pauseEvent":
+        case "pause":
             stopTimer()
             break;
-        case "resumeEvent":
+        case "resume":
             startTimer()
             break;
-        case "playthroughPercentEvent":
+        case "playthroughPercent":
             eventItem["percent"] = floor(playbackTime * 100 / duration)
             stopTimer()
             break;
@@ -94,7 +94,7 @@ class ViewController: UIViewController {
             "sessionId": sessionId,
             "asset": ["id": "{embed_code}", "idType": "ooyala"],
             "events": [
-                "items": [eventItem]
+                eventItem
             ]
         ]
         sendRequest(params)
@@ -142,12 +142,12 @@ class ViewController: UIViewController {
         
         sessionStartTime = getCurrentTimeDate()
         sessionId = NSUUID().UUIDString
-        sendPlayerEvent("displayEvent")
+        sendPlayerEvent("display")
     }
 
     override func viewWillDisappear(animation: Bool) {
         super.viewWillDisappear(animation)
-        sendPlayerEvent("playthroughPercentEvent")
+        sendPlayerEvent("playthroughPercent")
         NSNotificationCenter.defaultCenter().removeObserver(self)
 
     }
@@ -171,17 +171,17 @@ class ViewController: UIViewController {
             
             player.play()
             playing = true
-            sendPlayerEvent("playRequestedEvent")
-            sendPlayerEvent("videoStartedEvent")
+            sendPlayerEvent("playRequested")
+            sendPlayerEvent("videoStarted")
             firstPlay = false
         } else if (self.playing) {
             player.pause()
             playing = false
-            sendPlayerEvent("pauseEvent")
+            sendPlayerEvent("pause")
         } else {
             player.play()
             playing = true
-            sendPlayerEvent("resumeEvent")
+            sendPlayerEvent("resume")
         }
     }
     
